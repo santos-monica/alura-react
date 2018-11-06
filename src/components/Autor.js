@@ -2,6 +2,8 @@ import React, {Component} from 'react';
 import $ from 'jquery';
 import InputCustomizado from './InputCustomizado.js';
 import SubmitCustomizado from './SubmitCustomizado.js';
+import PubSub from 'pubsub-js';
+import TratadorErros from './TratadorErros.js'
 
 class FormularioAutor extends Component {
     constructor() {
@@ -21,11 +23,22 @@ class FormularioAutor extends Component {
             dataType: 'json',
             type: 'post',
             data: JSON.stringify({nome:this.state.nome, email:this.state.email, senha:this.state.senha}),
-            success: (res) => {
-                console.log('sucessooo');                
+            success: (novaListagem) => {
+                console.log('sucessooo');
+                PubSub.publish('atualiza-listagem-autores', novaListagem);
+                this.setState({
+                    nome: '',
+                    email: '',
+                    senha: ''                })
             },
             error: (res) => {
                 console.log('falhô');
+                if (res.status === 400) {
+                    new TratadorErros().publicaErros(res.responseJSON);
+                }
+            },
+            beforeSend: () => {
+                PubSub.publish('limpa-erros', {});
             }
         })
     }
@@ -105,12 +118,14 @@ export default class AutorBox extends Component {
                 })
             }
         })
-    }
-    atualizaListagem = (novaLista) => {
-        this.setState({
-            lista: novaLista
+
+        PubSub.subscribe('atualiza-listagem-autores', (topico, novaListagem) => {
+            this.setState({
+                lista: novaListagem
+            })
         });
     }
+
     render() {
         return(
             <div>
