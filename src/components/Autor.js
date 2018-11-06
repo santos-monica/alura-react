@@ -24,7 +24,6 @@ class FormularioAutor extends Component {
             type: 'post',
             data: JSON.stringify({nome:this.state.nome, email:this.state.email, senha:this.state.senha}),
             success: (novaListagem) => {
-                console.log('sucessooo');
                 PubSub.publish('atualiza-listagem-autores', novaListagem);
                 this.setState({
                     nome: '',
@@ -32,7 +31,6 @@ class FormularioAutor extends Component {
                     senha: ''                })
             },
             error: (res) => {
-                console.log('falhô');
                 if (res.status === 400) {
                     new TratadorErros().publicaErros(res.responseJSON);
                 }
@@ -42,37 +40,25 @@ class FormularioAutor extends Component {
             }
         })
     }
-    
-    setNome = (e) => {
-        this.setState({nome: e.target.value})
-    }
-    
-    setEmail = (e) => {
-        this.setState({email: e.target.value})
-    }
-    
-    setSenha = (e) => {
-        this.setState({senha: e.target.value})
-    }
-    
+    salvaAlteracao = (inputName, event) => {
+        this.setState({ [inputName]: event.target.value })
+    }    
     
     render() {
         return (
             <div className="pure-form pure-form-aligned">
-            <form className="pure-form pure-form-aligned" onSubmit={this.enviaForm.bind(this)} method="post">
-            <InputCustomizado id="nome" type="text" name="nome" value={this.state.nome} label="Nome" onChange={this.setNome} />
-            <InputCustomizado id="email" type="email" name="email" value={this.state.email} label="Email" onChange={this.setEmail} />
-            <InputCustomizado id="senha" type="password" name="senha" value={this.state.senha} label="Senha" onChange={this.setSenha} />
-            <SubmitCustomizado label="Gravar"/>
-            </form>             
-            
+                <form className="pure-form pure-form-aligned" onSubmit={this.enviaForm.bind(this)} method="post">
+                    <InputCustomizado id="nome" type="text" name="nome" value={this.state.nome} label="Nome" onChange={(e) => this.salvaAlteracao("nome", e)} />
+                    <InputCustomizado id="email" type="email" name="email" value={this.state.email} label="Email" onChange={(e) => this.salvaAlteracao("email", e)} />
+                    <InputCustomizado id="senha" type="password" name="senha" value={this.state.senha} label="Senha" onChange={(e) => this.salvaAlteracao("senha", e)} />
+                <SubmitCustomizado label="Gravar"/>
+                </form>             
             </div> 
             );
         }
 }
 
 class TabelaAutores extends Component {
-    
     render() {
         return (
             <div>            
@@ -108,6 +94,7 @@ export default class AutorBox extends Component {
             lista: [],
         }
     }
+
     componentDidMount(){
         $.ajax({
             url: "https://cdc-react.herokuapp.com/api/autores",
@@ -129,9 +116,14 @@ export default class AutorBox extends Component {
     render() {
         return(
             <div>
-                <FormularioAutor />
-                <TabelaAutores lista={this.state.lista}/>
+                <div className="header">
+                    <h1>Cadastro de Autores</h1>
+                </div>
+                <div className="content" id="content">
+                    <FormularioAutor />
+                    <TabelaAutores lista={this.state.lista}/>
+                </div>
             </div>
-        )
+        );
     }
 }
